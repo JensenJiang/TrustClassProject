@@ -1,0 +1,548 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="http://libs.baidu.com/jquery/1.11.1/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" class="ui" href={% static "dist/semantic.min.css" %}>
+        <script src={% static "dist/semantic.min.js" %}></script>
+        <style type="text/css">
+            .fixed.menu {
+                background-color: #2185D0;
+                border-bottom: 1px solid #DDDDDD;
+                box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.04);
+            }
+            .fixed.menu .ui.item {
+                padding: 1.5em;
+            }
+            .logo {
+                height: 35px;
+                width: 60px;
+            }
+            .dropdown {
+
+            }
+            .dimmable.scrolling.dimmed {
+                overflow: hidden!important;
+            }
+            .card {
+                min-width: 338px!important;
+            }
+            .tc_menu_container {
+                padding-left: 1em;
+                padding-right: 1em;
+                width: 1060px;
+                margin-left: auto!important;
+                margin-right: auto!important;
+                display: flex;
+            }
+            .tc_container {
+                padding-left: 1em;
+                padding-right: 1em;
+                width: 1060px;
+                margin-left: auto!important;
+                margin-right: auto!important;
+            }
+            #main_container {
+                padding-top: 80px;
+            }
+            #feed_divider {
+                margin-left: 14px;
+                margin-right: 14px;
+            }
+            .event {
+                margin-left: 14px!important;
+                margin-right: 14px!important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="ui fixed menu">
+            <div class="ui tc_menu_container">
+                <div class="item" id="tc_logo">
+                    <img class="ui image" src={% static "tclogo.jpg" %} style="height:40px;"></img>
+                </div>
+                <a class="item" style="color:#FFFFFF;">
+                    <div class="ui dropdown" id="chooseschool"style="padding-left:17px;margin-left:-17px;padding-top:27px;padding-bottom:27px;margin-top:-27px;margin-bottom:-27px;">
+                        <input type="hidden" name="filters">
+                        <i class="university icon"></i>
+                        <span class="text">选择学校</span>
+                        <div class="menu">
+                            <div class="ui icon search input">
+                                <i class="search icon"></i>
+                                <input type="text" placeholder="搜索学校">
+                            </div>
+                            <div class="scrolling menu">
+                                {% for school in schools %}
+                                <div class="item">
+                                    {{ school.name }}
+                                </div>
+                                {% endfor%}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <form action="/search/" method="GET" id="searchSchool"> {% csrf_token %}
+                    <div class="ui item">
+                        <input type="hidden" value="选择学校" id="universityHiddenValue" name="schoolName">
+                        <div class="ui action input">
+                            <input type="text" placeholder="搜索课程" name="courseName">
+                            <div class="ui icon button" id="searchSchoolButton">
+                                <i class="search icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <a class="item" style="color:#FFFFFF;" href="/home/">
+                    首页
+                </a>
+                {% if user.is_authenticated %}
+                <div class="ui right dropdown item" style="color:#FFFFFF;">
+                    {{ user.username }}
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                        <a class="item">账户</a>
+                        <a class="item">私信</a>
+                        <a class="item" href="/user/logout/action">退出</a>
+                    </div>
+                </div>
+                {% else %}
+                <a class="ui right item" style="color:#FFFFFF;" href="/user/login">登录</a>
+                {% endif %}
+                    <div class="item vertical divider" style="padding-left:0em;padding-right:0em;"></div>
+            </div>
+        </div>
+            <div class="ui tc_container" style="padding-top:80px;">
+                <h2 class="ui header">
+                    <i class="{{ course.iconType }} icon"></i>
+                    <div class="content">
+                        {{ course.name }}
+                        <div class="sub header">{% for teacher in course.teacherSet.all %}{{ teacher.name }}&nbsp{% endfor %}<span>/&nbsp</span>{{ course.school }}</div>
+                    </div>
+                </h2>
+            </div>
+            <div class="ui divider"></div>
+        <div class="ui grid tc_container" id="main_container" style="padding-top:0px;">
+            <div class="twelve wide column">
+                <i class="student icon"></i>
+                <strong>课程动态</strong>
+                <div class="ui divider"></div>
+                <div class="ui feed">
+                    {% for review in reviews %}
+                    <div class="event">
+                        <div class="label">
+                            <i class="spy icon"></i>
+                        </div>
+                        <div class="content">
+                            <div class="summary">
+                                <a class="user">
+                                    {{ review.author.user.username }}
+                                </a>
+                                {% if review.isScoredReview %}
+
+                                    {% if review.isGoodReview %}
+                                    增添了好评
+                                    {% endif %}
+                                    {% if review.isNeutralReview %}
+                                    增添了中评
+                                    {% endif %}
+                                    {% if review.isBadReview %}
+                                    增添了差评
+                                    {% endif %}
+                                {% endif %}
+                                {% if not review.isScoredReview %}
+                                    添加了评论
+                                {% endif %}
+                                <div class="date">
+                                    {{ review.dateTime }}
+                                </div>
+                            </div>
+                            <div class="extra text">
+                                {{ review.body }}
+                            </div>
+                            {% if review.body %}
+                            <form class="meta likeOrNot" method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" value="{{ review.id }}" name="reviewID">
+                                <a class="likeButton" value="{{ review.id }}" likecount="{{ review.likeCount }}">
+                                    <i class="thumbs
+                                    {% if user.tcuser not in review.likeBy.all %}
+                                        outline
+                                    {% endif %}
+                                     up icon"></i>
+                                        {{ review.likeCount }}&nbsp赞同
+                                </a>
+                                <a class="dislikeButton" value="{{ review.id }}" dislikecount="{{ review.dislikeCount }}">
+                                    <i class="thumbs
+                                    {% if user.tcuser not in review.dislikeBy.all %}
+                                    outline
+                                    {% endif %}
+                                    down icon"></i>
+                                        {{ review.dislikeCount }}&nbsp反对
+                                </a>
+                                {% if user.tcuser in review.collectBy.all %}
+                                <input type="hidden" value="collected" name="collectStatus">
+                                <a class="collectButton">
+                                    <i class="heart icon">
+                                    </i>&nbsp收藏
+                                </a>
+                                {% else %}
+                                <input type="hidden" value="uncollected" name="collectStatus">
+                                <a class="collectButton">
+                                    <i class="empty heart icon">
+                                    </i>&nbsp收藏
+                                </a>
+                                {% endif %}
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="ui divider" id="feed_divider"></div>
+                    {% endfor %}
+                    {% if prevpage %}
+                    <div style="margin-left:41%;">
+                        <div class="ui basic buttons" style="">
+                          <a class="ui button" href="/course/{{course.id}}/p{{ prevpage }}">上一页</a>
+                          {% if nextPageIsEmpty %}
+                          <a class="ui disabled button" href="/course/{{ course.id }}/p{{ nextpage }}">下一页</a>
+                          {% else %}
+                          <a class="ui button" href="/course/{{ course.id }}/p{{ nextpage }}">下一页</a>
+                          {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="margin-left:41%;">
+                        <div class="ui basic buttons" style="">
+                          <a class="ui disabled button">上一页</a>
+                          {% if nextPageIsEmpty %}
+                          <a class="ui disabled button">下一页</a>
+                          {% else %}
+                          <a class="ui button" href="/course/{{ course.id }}/p{{ nextpage }}">下一页</a>
+                          {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+            <div class="four wide column">
+                <div class="ui horizontal basic segments" style="box-shadow: 0 0 0 0 #FFFFFF;margin-top:0px;">
+                    <div class="ui segment">
+                    <p style="width:40px;"><strong id="followCount">{{ course.followCount }}</strong></p>关注
+                    </div>
+                    <div class="ui segment">
+                    <p style="width:40px;"><strong>{{ course.reviewCount }}</strong></p>评论
+                    </div>
+                    <div class="ui segment">
+                    <p style="width:40px;"><strong>{{ course.scoreCount }}</strong></p>打分
+                    </div>
+                </div>
+                <div class="ui horizontal basic segments" style="box-shadow: 0 0 0 0 #FFFFFF;">
+                    <div style="width:40px;" class="ui segment">
+                    <i class="frown red icon"></i><strong>{{ course.badReviewCount }}</strong>
+                    </div>
+                    <div style="width:40px;" class="ui segment">
+                    <i class="meh yellow icon"></i><strong>{{ course.neutralReviewCount }}</strong>
+                    </div>
+                    <div style="width:40px;" class="ui segment">
+                    <i class="smile green icon"></i><strong>{{ course.goodReviewCount }}</strong>
+                    </div>
+                </div>
+                {% if user.is_authenticated %}
+                    {% if course not in user.tcuser.course.all %}
+                    <form id="followForm">{% csrf_token %}
+                        <input type="hidden" name="courseID" value="{{ course.id }}"></input>
+                        <input type="hidden" id="currentStatus" name="currentStatus" value="unfollow"></input>
+                        <div type="submit" id="changeFollowStatusButton" class="ui fluid green button" style="margin-bottom:14px;">关注课程</div>
+                    </form>
+                    {% else %}
+                    <form id="followForm">{% csrf_token %}
+                        <input type="hidden" id="currentStatus" name="currentStatus" value="follow">
+                        <input type="hidden" name="courseID" value="{{ course.id }}"></input>
+                        <div type="submit" id="changeFollowStatusButton" class="ui fluid button" style="margin-bottom:14px;">取消关注</div>
+                    </form>
+                    {% endif %}
+                {% else %}
+                    <a class="ui fluid green button" style="margin-bottom:14px;" href="/user/login">登录以评论/关注</a>
+                {% endif %}
+                {% if user.is_authenticated %}
+                <div class="ui two buttons">
+                    <button class="ui basic grey button" id="addScore">评分</button>
+                    <button class="ui basic grey button" id="addReview">评论</button>
+                </div>
+                {% else %}
+                <div class="ui two buttons">
+                    <button class="ui basic disabled grey button">评分</button>
+                    <button class="ui basic disabled grey button">评论</button>
+                </div>
+                {% endif %}
+                <div class="ui divider"></div>
+                <div class="ui list" style="margin: 14px 14px 14px 14px;">
+                    <div class="item"><i class="hashtag icon"></i>
+                        <div class="content">
+                            <div class="header">{{ course.name }}</div>
+                        </div>
+                    </div>
+                    {% for teacher in course.teacherSet.all %}
+                    <div class="item"><i class="user icon"></i>
+                        <div class="content">
+                            <div class="header">&nbsp{{ teacher.name }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="item"><i class="university icon"></i>
+                        <div class="content">
+                            <div class="header">{{ course.school.name }}</div>
+                        </div>
+                    </div>
+                    {% if course.meta %}
+                    <div class="item"><i class="info icon"></i>
+                        <div class=content style="padding-left:11px">
+                            <div class="header">{{ course.meta }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="ui divider" {% if course.meta %}style="margin-top:40px;"{%endif%}></div>
+                <a {% if not course.meta %}style="float:right;margin-top:-49px;padding-right:13px;"{% else %}style="float:right;margin-top:-49px;padding-right:13px;"{% endif %} href="/operation/edit/course/{{ course.id }}">编辑信息</a>
+                <div class="ui horizontal link list" style="margin: 0px 14px;">
+                    <a class="item">关于网站</a>
+                    <a class="item">联系我</a>
+                </div>
+            </div>
+        </div>
+        <form class="ui small modal" id="scoreModal" method="POST" action="/operation/create/review">{% csrf_token %}
+            <i class="close icon"></i>
+            <div class="header" style="border-top-left-radius:4px;border-top-right-radius:4px;">
+                添加评论
+            </div>
+            <div class="image content">
+                <input type="hidden" name="courseID" value="{{ course.id }}"></input>
+                <div class="description">
+                        <div class="ui form">
+                            <div class="ui header">附加说明(可选)</div>
+                            <textarea name="body"></textarea>
+                        </div>
+                        <div class="ui form" style="float:right;padding-top:20px;margin-bottom:-10px;">
+                            <div class="inline fields">
+                                <label>打个分吧</label>
+                                <div class="field">
+                                    <div class="ui radio checkbox">
+                                        <input type="radio" name="score" value="bad">
+                                        <label>差评<i class="frown red icon"></i></label>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui radio checkbox">
+                                        <input type="radio" name="score" value="meh" checked>
+                                        <label>中评<i class="meh yellow icon"></i></label>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui radio checkbox">
+                                        <input type="radio" name="score" value="good">
+                                        <label>好评<i class="smile green icon"></i></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            <div class="actions">
+                <div class="ui black deny button">
+                    取消
+                </div>
+                <button type="submit" class="ui positive right labeled icon button">
+                    提交评论
+                    <i class="checkmark icon"></i>
+                </button>
+            </div>
+        </form>
+        <form class="ui small modal" action="/operation/create/review" method="POST" id="reviewModal"> {% csrf_token %}
+                <i class="close icon"></i>
+                <div class="header" style="border-top-left-radius:4px;border-top-right-radius:4px;">
+                    添加评论
+                </div>
+                <div class="image content">
+                    <input type="hidden" name="courseID" value="{{ course.id }}"></input>
+                    <div class="description">
+                        <div class="ui form">
+                            <div class="ui header"></div>
+                            <textarea name="body"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <div class="ui black deny button">
+                        取消
+                    </div>
+                    <button class="ui positive right labeled icon button" type="submit">
+                        提交评论
+                        <i class="checkmark icon"></i>
+                    </button>
+                </div>
+        </form>
+        <div class="ui small modal"  id="pleaseChooseSchoolModal">
+          <i class="close icon"></i>
+          <div class="header">
+            请选择学校
+          </div>
+        </div>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                    $('.dropdown')
+                    .dropdown();
+                    $('#addReview').on('click', function(){
+                        $('.ui.modal#reviewModal')
+                        .modal('show');
+                    });
+                    $('#addScore').on('click', function(){
+                        $('.ui.modal#scoreModal')
+                        .modal('show');
+                    });
+
+                    $('#chooseschool')
+                      .popup(
+                      {
+                          hoverable: 'false',
+                          on :'manual',
+                          position : 'bottom center',
+                         content    : '请选择学校',
+                      })
+                    ;
+                    $('#chooseschool').popup('hide');
+                    $('#chooseschool').on('click', function(){$(this).popup('hide');});
+                    $('#searchSchoolButton').on('click', function(){
+                        if($('#universityHiddenValue').val() == '选择学校') {
+                            $('#chooseschool').popup('show');
+                        }
+                        else {
+                            $('#searchSchool').submit();
+                        }
+                    });
+
+                    $('#chooseschool').on('click', function(){
+                        $('#universityHiddenValue').val($('#chooseschool').dropdown('get text'))
+                    });
+                    $('.collectButton').each(function() {
+                        $(this).on('click', function() {
+                            form = $(this).parent();
+                            icon = $(this).children('i');
+                            hiddenInput = $(this).prev();
+                            $.post('/operation/add/collect', form.serialize(), function(data) {
+                                if(data['status'] == 'SuccessCollect') {
+                                    icon.removeClass('empty');
+                                    hiddenInput.attr('value', 'collected');
+                                }
+                                else if(data['status'] = 'SuccessUncollect') {
+                                    icon.addClass('empty');
+                                    hiddenInput.attr('value', 'uncollected');
+                                }
+                                else {
+                                    alert(data['status']);
+                                }
+                            });
+                        });
+                    });
+                    $('.likeButton').each(function() {
+                        $(this).on('click', function() {
+                            var likecount = String($(this).attr('likecount'));
+                            var likecountplusone = String(parseInt(likecount) + 1);
+                            var likecountminusone = String(parseInt(likecount) - 1);
+                            var dislikecount = $(this).next().attr('dislikecount');
+                            var dislikecountminusone = String(parseInt(dislikecount) - 1);
+                            var likeRef = $(this);
+                            var dislikeRef = $(this).next();
+                            var form = $(this).parent();
+                            $.post('/operation/add/likecount', form.serialize(), function(data) {
+                                if(data['status'] == 'AlreadyLiked') {
+                                    likeRef.html(likeRef.html().replace(likecount, likecountminusone));
+                                    likeRef.attr('likecount', likecountminusone);
+                                    likeRef.children('i').addClass('outline');
+                                }
+                                else if(data['status'] == 'SuccessLiked') {
+
+                                    likeRef.html(likeRef.html().replace(likecount, likecountplusone));
+                                    likeRef.attr('likecount', likecountplusone);
+                                    likeRef.children('i').removeClass('outline');
+                                }
+                                else if(data['status'] == 'SuccessLikedAlreadyDisliked') {
+                                    likeRef.children('i').removeClass('outline');
+                                    dislikeRef.children('i').addClass('outline');
+                                    likeRef.html(likeRef.html().replace(likecount, likecountplusone));
+                                    likeRef.attr('likecount', likecountplusone);
+                                    dislikeRef.html(dislikeRef.html().replace(dislikecount, dislikecountminusone));
+                                    dislikeRef.attr('dislikecount', dislikecountminusone);
+                                }
+                                else {
+                                    alert('Can\'t get data');
+                                }
+                            });
+                        })
+                    });
+                    $('.dislikeButton').each(function() {
+                        $(this).on('click', function() {
+                            var dislikecount = String($(this).attr('dislikecount'));
+                            var dislikecountplusone = String(parseInt(dislikecount) + 1);
+                            var dislikecountminusone = String(parseInt(dislikecount) - 1);
+                            var likecount = $(this).prev().attr('likecount');
+                            var likecountminusone = String(parseInt(likecount) - 1);
+                            var dislikeRef = $(this);
+                            var likeRef = $(this).prev();
+                            var form = $(this).parent();
+                            $.post('/operation/add/dislikecount', form.serialize(), function(data) {
+                                if(data['status'] == 'AlreadyDisliked') {
+                                    dislikeRef.html(dislikeRef.html().replace(dislikecount, dislikecountminusone));
+                                    dislikeRef.attr('dislikecount', dislikecountminusone);
+                                    dislikeRef.children('i').addClass('outline');
+                                }
+                                else if(data['status'] == 'SuccessDisliked') {
+                                    dislikeRef.html(dislikeRef.html().replace(dislikecount, dislikecountplusone));
+                                    dislikeRef.attr('dislikecount', dislikecountplusone);
+                                    dislikeRef.children('i').removeClass('outline');
+                                }
+                                else if(data['status'] == 'SuccessDislikedAlreadyLiked') {
+                                    dislikeRef.html(dislikeRef.html().replace(dislikecount, dislikecountplusone));
+                                    dislikeRef.attr('dislikecount', dislikecountplusone);
+                                    likeRef.html(likeRef.html().replace(likecount, likecountminusone));
+                                    likeRef.attr('likecount', likecountminusone);
+                                    dislikeRef.children('i').removeClass('outline');
+                                    likeRef.children('i').addClass('outline');
+                                }
+                                else {
+                                    alert('Can\'t get data');
+                                }
+                            });
+                        })
+                    });
+
+                    $('#changeFollowStatusButton').on('click', function() {
+                        currentStatus = $('#currentStatus');
+                        form = $('#followForm');
+                        button = $(this);
+                        $.post('/user/changefollowstatus/action', form.serialize(), function(data) {
+                            status = data['status'];
+                            if(status == 'successFollow') {
+                                button.removeClass('green');
+                                button.html('取消关注');
+                                currentStatus.attr('value', 'follow');
+                                followCount = parseInt($('#followCount').html());
+                                $('#followCount').html(String(followCount + 1));
+                            }
+                            else if(status == 'successUnfollow') {
+                                button.addClass('green');
+                                button.html('关注课程');
+                                currentStatus.attr('value', 'unfollow');
+                                followCount = parseInt($('#followCount').html());
+                                $('#followCount').html(String(followCount - 1));
+                            }
+                            else {
+                                alert('Error : ' + status);
+                            }
+                        });
+                    });
+                }
+            );
+        </script>
+    </body>
+</html>

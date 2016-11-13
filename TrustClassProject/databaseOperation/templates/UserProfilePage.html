@@ -1,0 +1,239 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="http://libs.baidu.com/jquery/1.11.1/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" class="ui" href={% static "dist/semantic.min.css" %}>
+        <script src={% static "dist/semantic.min.js" %}></script>
+        <style type="text/css">
+            .fixed.menu {
+                background-color: #2185D0;
+                border-bottom: 1px solid #DDDDDD;
+                box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.04);
+            }
+            .fixed.menu .ui.item {
+                padding: 1.5em;
+            }
+            .logo {
+                height: 35px;
+                width: 60px;
+            }
+            .dropdown {
+
+            }
+            .dimmable.scrolling.dimmed {
+                overflow: hidden!important;
+            }
+            .card {
+                min-width: 338px!important;
+            }
+            .tc_menu_container {
+                padding-left: 1em;
+                padding-right: 1em;
+                width: 1060px;
+                margin-left: auto!important;
+                margin-right: auto!important;
+                display: flex;
+            }
+            .tc_container {
+                padding-left: 1em;
+                padding-right: 1em;
+                width: 1060px;
+                margin-left: auto!important;
+                margin-right: auto!important;
+            }
+            #main_container {
+                padding-top: 87px;
+            }
+            #feed_divider {
+                margin-left: 14px;
+                margin-right: 14px;
+            }
+            .event {
+                margin-left: 14px!important;
+                margin-right: 14px!important;
+            }
+            .form_container {
+                margin-left: auto;
+                margin-right: auto;
+                width: 480px;
+            }
+            .myfield {
+                margin : 14px 7px!important;
+            }
+            .myfields {
+                margin : 14px 0px!important;
+            }
+            #saveButton {
+                margin-top: -53px;
+                margin-right: 7px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="ui fixed menu">
+            <div class="ui tc_menu_container">
+                <div class="item" id="tc_logo">
+                    <img class="ui image" src={% static "tclogo.jpg" %} style="height:40px;"></img>
+                </div>
+                <a class="item" style="color:#FFFFFF;">
+                    <div class="ui dropdown" id="chooseschool"style="padding-left:17px;margin-left:-17px;padding-top:27px;padding-bottom:27px;margin-top:-27px;margin-bottom:-27px;">
+                        <input type="hidden" name="filters">
+                        <i class="university icon"></i>
+                        <span class="text">选择学校</span>
+                        <div class="menu">
+                            <div class="ui icon search input">
+                                <i class="search icon"></i>
+                                <input type="text" placeholder="搜索学校">
+                            </div>
+                            <div class="scrolling menu">
+                                {% for school in schools %}
+                                <div class="item">
+                                    {{ school.name }}
+                                </div>
+                                {% endfor%}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <form action="/search/" method="GET" id="searchSchool"> {% csrf_token %}
+                    <div class="ui item">
+                        <input type="hidden" value="选择学校" id="universityHiddenValue" name="schoolName">
+                        <div class="ui action input">
+                            <input type="text" placeholder="搜索课程" name="courseName">
+                            <div class="ui icon button" id="searchSchoolButton">
+                                <i class="search icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <a class="item" style="color:#FFFFFF;" href="/home/">
+                    首页
+                </a>
+                    {% if user.is_authenticated %}
+                    <div class="ui right dropdown item" style="color:#FFFFFF;">
+                        {{ user.username }}
+                        <i class="dropdown icon"></i>
+                        <div class="menu">
+                            <a class="item">账户</a>
+                            <a class="item">私信</a>
+                            <a class="item" href="/user/logout/action">退出</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a class="ui right dropdown item" style="color:#FFFFFF;" href="/user/login">登录</a>
+                    {% endif %}
+                    <div class="item vertical divider" style="padding-left:0em;padding-right:0em;"></div>
+            </div>
+        </div>
+        <div class="ui grid tc_container" id="main_container">
+            <div class="twelve wide column">
+                <form method="POST" action="/operation/create/createcourse" class="form_container">
+                    {% csrf_token %}
+                    <div class="content">
+                        <div class="ui form">
+                            <h4 class="ui dividing header">个人信息</h4>
+                            <div class="fields myfields">
+                                <div class="disabled required eight wide field">
+                                    <label><strong>用户名</strong></label>
+                                    <input type="text" placeholder="用户名" value="{{ user.username }}"></input>
+                                </div>
+                                <div class="eight wide field">
+                                    <label><strong>昵称</strong></label>
+                                    {% if user.tcuser.nickname %}
+                                    <input type="text" name="firstTeacher" placeholder="昵称" value="{{ user.tcuser.nickname }}"></input>
+                                    {% else %}
+                                    <input type="text" name="firstTeacher" placeholder="昵称" value=""></input>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="required field myfield">
+                                <label><strong>学校</strong></label>
+                                <select name="schoolName" class="ui fluid search dropdown">
+                                    {% for school in schools %}
+                                    <option value="{{ school.name }}" {% if school.name == user.tcuser.school.name %} class="active" {% endif %}>{{ school.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="fields myfields">
+                                <div class="eight wide field">
+                                    <label><strong>旧密码</strong></label>
+                                    <input type="password" name="oldpassword" placeholder="不修改不必填写"></input>
+                                </div>
+                                <div class="eight wide field">
+                                    <label><strong>新密码</strong></label>
+                                    <input type="password" name="newpassword" placeholder="不修改不必填写"></input>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="extra content">
+                        <button class="ui button" type="submit" style="float:right;margin:7px 7px;">
+                            保存
+                        </button>
+                    </div>
+                    </form>
+                </div>
+                <div class="four wide column">
+                    <div class="ui vertical text menu">
+                        <a class="item" href="/user/follow"><i class="empty heart icon"></i> 我关注的课程</a>
+                        <a class="item" href="/user/collection"><i class="bookmark outline icon"></i> 我收藏的评论</a>
+                    </div>
+                    <div class="ui divider"></div>
+                    <div class="ui horizontal link list" style="margin: 0px 14px;">
+                        <a class="item" href="/about">关于网站</a>
+                        <a class="item" href="/contactus">联系我</a>
+                    </div>
+                </div>
+            </div>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                    $('.dropdown')
+                    .dropdown();
+                    $('#chooseschool').on('click', function(){
+                        $('#universityHiddenValue').val($('#chooseschool').dropdown('get text'))
+                    });
+                    image = $('.captcha');
+                    $('#id_captcha_1').css({width : '180px', marginRight : '7px'});
+                    $('#id_captcha_1').after(image);
+                    $('.captcha').css({
+                        marginLeft:'-92px',
+                        marginTop:'2px',
+                    });
+                }
+            );
+        </script>
+        <script>
+            $(document).ready(function() {
+                $('#chooseschool')
+                  .popup(
+                  {
+                      on :'manual',
+                      position : 'bottom center',
+                     content    : '请选择学校',
+                  })
+                ;
+                $('#chooseschool').popup('hide');
+                $('#chooseschool').on('click', function(){$(this).popup('hide');});
+                $('#searchSchoolButton').on('click', function(){
+                    if($('#universityHiddenValue').val() == '选择学校') {
+                        $('#chooseschool').popup('show');
+                    }
+                    else {
+                        $('#searchSchool').submit();
+                    }
+                });
+            });
+
+            $('.captcha').on('click', function(){
+                $.getJSON('/operation/refresh/captcha' , {}, function(json) {
+                    $('.captcha').attr('src', json['new_cptch_image']);
+                    $('#id_captcha_0').attr('value', json['new_cptch_key']);
+                });
+                return false;
+            });
+        </script>
+    </body>
+</html>

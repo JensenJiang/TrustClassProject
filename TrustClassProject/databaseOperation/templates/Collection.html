@@ -1,0 +1,355 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="http://libs.baidu.com/jquery/1.11.1/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" class="ui" href={% static "dist/semantic.min.css" %}>
+        <script src={% static "dist/semantic.min.js" %}></script>
+        <style type="text/css">
+            .fixed.menu {
+                background-color: #2185D0;
+                border-bottom: 1px solid #DDDDDD;
+                box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.04);
+            }
+            .fixed.menu .ui.item {
+                padding: 1.5em;
+            }
+            .logo {
+                height: 35px;
+                width: 60px;
+            }
+            .dropdown {
+
+            }
+            .dimmable.scrolling.dimmed {
+                overflow: hidden!important;
+            }
+            .card {
+                min-width: 338px!important;
+            }
+            .tc_menu_container {
+                padding-left: 1em;
+                padding-right: 1em;
+                width: 1060px;
+                margin-left: auto!important;
+                margin-right: auto!important;
+                display: flex;
+            }
+            .tc_container {
+                padding-left: 1em;
+                padding-right: 1em;
+                width: 1060px;
+                margin-left: auto!important;
+                margin-right: auto!important;
+            }
+            #main_container {
+                padding-top: 80px;
+            }
+            #feed_divider {
+                margin-left: 14px;
+                margin-right: 14px;
+            }
+            .event {
+                margin-left: 14px!important;
+                margin-right: 14px!important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="ui fixed menu">
+            <div class="ui tc_menu_container">
+                <div class="item" id="tc_logo">
+                    <img class="ui image" src={% static "tclogo.jpg" %} style="height:40px;"></img>
+                </div>
+                <a class="item" style="color:#FFFFFF;">
+                    <div class="ui dropdown" id="chooseschool"style="padding-left:17px;margin-left:-17px;padding-top:27px;padding-bottom:27px;margin-top:-27px;margin-bottom:-27px;">
+                        <input type="hidden" name="filters">
+                        <i class="university icon"></i>
+                        <span class="text">选择学校</span>
+                        <div class="menu">
+                            <div class="ui icon search input">
+                                <i class="search icon"></i>
+                                <input type="text" placeholder="搜索学校">
+                            </div>
+                            <div class="scrolling menu">
+                                {% for school in schools %}
+                                <div class="item">
+                                    {{ school.name }}
+                                </div>
+                                {% endfor%}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <form action="/search/" method="GET" id="searchSchool"> {% csrf_token %}
+                    <div class="ui item">
+                        <input type="hidden" value="选择学校" id="universityHiddenValue" name="schoolName">
+                        <div class="ui action input">
+                            <input type="text" placeholder="搜索课程" name="courseName">
+                            <div class="ui icon button" id="searchSchoolButton">
+                                <i class="search icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <a class="item" style="color:#FFFFFF;" href="/home/">
+                    首页
+                </a>
+                    {% if user.is_authenticated %}
+                    <div class="ui right dropdown item" style="color:#FFFFFF;">
+                        {{ user.username }}
+                        <i class="dropdown icon"></i>
+                        <div class="menu">
+                            <a class="item">账户</a>
+                            <a class="item">私信</a>
+                            <a class="item" href="/user/logout/action">退出</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a class="ui right dropdown item" style="color:#FFFFFF;" href="/user/login">登录</a>
+                    {% endif %}
+                    <div class="item vertical divider" style="padding-left:0em;padding-right:0em;"></div>
+            </div>
+        </div>
+        <div class="ui grid tc_container" id="main_container">
+            <div class="twelve wide column">
+                <i class="student icon"></i>
+                <strong>动态</strong>
+                <div class="ui divider"></div>
+                <div class="ui feed">
+                    {% for review in reviews %}
+                    <div class="event">
+                        <div class="label">
+                            <i class="spy icon"></i>
+                        </div>
+                        <div class="content">
+                            <div class="summary">
+                                <a class="user" href="/course/{{ review.course.id }}">
+                                    {{ review.course.name }}
+                                </a>
+                                &nbsp课程下&nbsp
+                                <a>
+                                    {{ review.author.user.username }}
+                                </a>
+                                {% if review.isScoredReview %}
+
+                                    {% if review.isGoodReview %}
+                                    增添了好评
+                                    {% endif %}
+                                    {% if review.isNeutralReview %}
+                                    增添了中评
+                                    {% endif %}
+                                    {% if review.isBadReview %}
+                                    增添了差评
+                                    {% endif %}
+                                {% endif %}
+                                {% if not review.isScoredReview %}
+                                    添加了评论
+                                {% endif %}
+                                <div class="date">
+                                    {{ review.dateTime }}
+                                </div>
+                            </div>
+                            <div class="extra text">
+                                {{ review.body }}
+                            </div>
+                            {% if review.body %}
+                            <form class="meta likeOrNot" method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" value="{{ review.id }}" name="reviewID">
+                                <a class="likeButton" value="{{ review.id }}" likecount="{{ review.likeCount }}">
+                                    <i class="thumbs
+                                    {% if user.tcuser not in review.likeBy.all %}
+                                        outline
+                                    {% endif %}
+                                     up icon"></i>
+                                        {{ review.likeCount }}&nbsp赞同
+                                </a>
+                                <a class="dislikeButton" value="{{ review.id }}" dislikecount="{{ review.dislikeCount }}">
+                                    <i class="thumbs
+                                    {% if user.tcuser not in review.dislikeBy.all %}
+                                    outline
+                                    {% endif %}
+                                    down icon"></i>
+                                        {{ review.dislikeCount }}&nbsp反对
+                                </a>
+                                {% if user.tcuser in review.collectBy.all %}
+                                <input type="hidden" value="collected" name="collectStatus">
+                                <a class="collectButton">
+                                    <i class="heart icon">
+                                    </i>&nbsp收藏
+                                </a>
+                                {% else %}
+                                <input type="hidden" value="uncollected" name="collectStatus">
+                                <a class="collectButton">
+                                    <i class="empty heart icon">
+                                    </i>&nbsp收藏
+                                </a>
+                                {% endif %}
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="ui divider" id="feed_divider"></div>
+                    {% endfor %}
+                    {% if prevpage %}
+                    <div style="margin-left:41%;">
+                        <div class="ui basic buttons" style="">
+                          <a class="ui button" href="/home/p{{ prevpage }}">上一页</a>
+                          {% if nextPageIsEmpty %}
+                          <a class="ui disabled button" href="/home/p{{ nextpage }}">下一页</a>
+                          {% else %}
+                          <a class="ui button" href="/home/p{{ nextpage }}">下一页</a>
+                          {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="margin-left:41%;">
+                        <div class="ui basic buttons" style="">
+                          <a class="ui disabled button">上一页</a>
+                          {% if nextPageIsEmpty %}
+                          <a class="ui disabled button" href="/home/p{{ nextpage }}">下一页</a>
+                          {% else %}
+                          <a class="ui button" href="/home/p{{ nextpage }}">下一页</a>
+                          {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="four wide column">
+                <div class="ui vertical text menu">
+                    <a class="item" href="/user/follow"><i class="empty heart icon"></i> 我关注的课程</a>
+                    <a class="item" href="/user/collection"><i class="bookmark outline icon"></i> 我收藏的评论</a>
+                </div>
+                <div class="ui divider"></div>
+                <div class="ui horizontal link list" style="margin: 0px 14px;">
+                    <a class="item" href="/about">关于网站</a>
+                    <a class="item" href="/contactus">联系我</a>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+                    $('.dropdown')
+                    .dropdown();
+                    $('#chooseschool').on('click', function(){
+                        $('#universityHiddenValue').val($('#chooseschool').dropdown('get text'))
+                    });
+                }
+            );
+
+            $('#chooseschool')
+              .popup(
+              {
+                  on :'manual',
+                  position : 'bottom center',
+                 content    : '请选择学校',
+              })
+            ;
+            $('#chooseschool').popup('hide');
+            $('#chooseschool').on('click', function(){$(this).popup('hide');});
+            $('#searchSchoolButton').on('click', function(){
+                if($('#universityHiddenValue').val() == '选择学校') {
+                    $('#chooseschool').popup('show');
+                }
+                else {
+                    $('#searchSchool').submit();
+                }
+            });
+            $('.collectButton').each(function() {
+                $(this).on('click', function() {
+                    form = $(this).parent();
+                    icon = $(this).children('i');
+                    hiddenInput = $(this).prev();
+                    $.post('/operation/add/collect', form.serialize(), function(data) {
+                        if(data['status'] == 'SuccessCollect') {
+                            icon.removeClass('empty');
+                            hiddenInput.attr('value', 'collected');
+                        }
+                        else if(data['status'] = 'SuccessUncollect') {
+                            icon.addClass('empty');
+                            hiddenInput.attr('value', 'uncollected');
+                        }
+                        else {
+                            alert(data['status']);
+                        }
+                    });
+                });
+            });
+            $('.likeButton').each(function() {
+                $(this).on('click', function() {
+                    var likecount = String($(this).attr('likecount'));
+                    var likecountplusone = String(parseInt(likecount) + 1);
+                    var likecountminusone = String(parseInt(likecount) - 1);
+                    var dislikecount = $(this).next().attr('dislikecount');
+                    var dislikecountminusone = String(parseInt(dislikecount) - 1);
+                    var likeRef = $(this);
+                    var dislikeRef = $(this).next();
+                    var form = $(this).parent();
+                    $.post('/operation/add/likecount', form.serialize(), function(data) {
+                        if(data['status'] == 'AlreadyLiked') {
+                            likeRef.html(likeRef.html().replace(likecount, likecountminusone));
+                            likeRef.attr('likecount', likecountminusone);
+                            likeRef.children('i').addClass('outline');
+                        }
+                        else if(data['status'] == 'SuccessLiked') {
+
+                            likeRef.html(likeRef.html().replace(likecount, likecountplusone));
+                            likeRef.attr('likecount', likecountplusone);
+                            likeRef.children('i').removeClass('outline');
+                        }
+                        else if(data['status'] == 'SuccessLikedAlreadyDisliked') {
+                            likeRef.children('i').removeClass('outline');
+                            dislikeRef.children('i').addClass('outline');
+                            likeRef.html(likeRef.html().replace(likecount, likecountplusone));
+                            likeRef.attr('likecount', likecountplusone);
+                            dislikeRef.html(dislikeRef.html().replace(dislikecount, dislikecountminusone));
+                            dislikeRef.attr('dislikecount', dislikecountminusone);
+                        }
+                        else {
+                            alert('Can\'t get data');
+                        }
+                    });
+                })
+            });
+            $('.dislikeButton').each(function() {
+                $(this).on('click', function() {
+                    var dislikecount = String($(this).attr('dislikecount'));
+                    var dislikecountplusone = String(parseInt(dislikecount) + 1);
+                    var dislikecountminusone = String(parseInt(dislikecount) - 1);
+                    var likecount = $(this).prev().attr('likecount');
+                    var likecountminusone = String(parseInt(likecount) - 1);
+                    var dislikeRef = $(this);
+                    var likeRef = $(this).prev();
+                    var form = $(this).parent();
+                    $.post('/operation/add/dislikecount', form.serialize(), function(data) {
+                        if(data['status'] == 'AlreadyDisliked') {
+                            dislikeRef.html(dislikeRef.html().replace(dislikecount, dislikecountminusone));
+                            dislikeRef.attr('dislikecount', dislikecountminusone);
+                            dislikeRef.children('i').addClass('outline');
+                        }
+                        else if(data['status'] == 'SuccessDisliked') {
+                            dislikeRef.html(dislikeRef.html().replace(dislikecount, dislikecountplusone));
+                            dislikeRef.attr('dislikecount', dislikecountplusone);
+                            dislikeRef.children('i').removeClass('outline');
+                        }
+                        else if(data['status'] == 'SuccessDislikedAlreadyLiked') {
+                            dislikeRef.html(dislikeRef.html().replace(dislikecount, dislikecountplusone));
+                            dislikeRef.attr('dislikecount', dislikecountplusone);
+                            likeRef.html(likeRef.html().replace(likecount, likecountminusone));
+                            likeRef.attr('likecount', likecountminusone);
+                            dislikeRef.children('i').removeClass('outline');
+                            likeRef.children('i').addClass('outline');
+                        }
+                        else {
+                            alert('Can\'t get data');
+                        }
+                    });
+                })
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,272 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="http://libs.baidu.com/jquery/1.11.1/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" class="ui" href={% static "dist/semantic.min.css"%}>
+        <script src={% static "dist/semantic.min.js" %}></script>
+        <style type="text/css">
+            .fixed.menu {
+                background-color: #2185D0;
+                border-bottom: 1px solid #DDDDDD;
+                box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.04);
+            }
+            .fixed.menu .ui.item {
+                padding: 1.5em;
+            }
+            .logo {
+                height: 35px;
+                width: 60px;
+            }
+            .dropdown {
+
+            }
+            .dimmable.scrolling.dimmed {
+                overflow: hidden!important;
+            }
+            .card {
+                min-width: 338px!important;
+            }
+            .tc_menu_container {
+                padding-left: 1em;
+                padding-right: 1em;
+                width: 1060px;
+                margin-left: auto!important;
+                margin-right: auto!important;
+                display: flex;
+            }
+            .tc_container {
+                padding-left: 1em;
+                padding-right: 1em;
+                width: 1060px;
+                margin-left: auto!important;
+                margin-right: auto!important;
+            }
+            #main_container {
+                padding-top: 80px;
+            }
+            #feed_divider {
+                margin-left: 14px;
+                margin-right: 14px;
+            }
+            .event {
+                margin-left: 14px!important;
+                margin-right: 14px!important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="ui fixed menu">
+            <div class="ui tc_menu_container">
+                <div class="item" id="tc_logo">
+                    <img class="ui image" src={% static "tclogo.jpg" %} style="height:40px;"></img>
+                </div>
+                <a class="item" style="color:#FFFFFF;">
+                    <div class="ui dropdown" id="chooseschool"style="padding-left:17px;margin-left:-17px;padding-top:27px;padding-bottom:27px;margin-top:-27px;margin-bottom:-27px;">
+                        <input type="hidden" name="filters">
+                        <i class="university icon"></i>
+                        <span class="text">选择学校</span>
+                        <div class="menu">
+                            <div class="ui icon search input">
+                                <i class="search icon"></i>
+                                <input type="text" placeholder="搜索学校">
+                            </div>
+                            <div class="scrolling menu">
+                                {% for school in schools %}
+                                <div class="item">
+                                    {{ school.name }}
+                                </div>
+                                {% endfor%}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <form action="/search/" method="GET" id="searchSchool"> {% csrf_token %}
+                    <div class="ui item">
+                        <input type="hidden" value="选择学校" id="universityHiddenValue" name="schoolName">
+                        <div class="ui action input">
+                            <input type="text" placeholder="搜索课程" name="courseName">
+                            <div class="ui icon button" id="searchSchoolButton">
+                                <i class="search icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <a class="item" style="color:#FFFFFF;" href="/home/">
+                    首页
+                </a>
+                    {% if user.is_authenticated %}
+                    <div class="ui right dropdown item" style="color:#FFFFFF;">
+                        {{ user.username }}
+                        <i class="dropdown icon"></i>
+                        <div class="menu">
+                            <a class="item">账户</a>
+                            <a class="item">私信</a>
+                            <a class="item" href="/user/logout/action">退出</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a class="ui right dropdown item" style="color:#FFFFFF;" href="/user/login">登录</a>
+                    {% endif %}
+                    <div class="item vertical divider" style="padding-left:0em;padding-right:0em;"></div>
+            </div>
+        </div>
+        <div class="ui grid tc_container" id="main_container" style="padding-top:80px;">
+            <div class="twelve wide column">
+                <i class="search icon"></i>
+                <strong>搜索结果</strong>
+                <div class="ui divider"></div>
+                {% for course in courses %}
+                    <div>
+                        <div style="display:inline-block;margin-left:14px;">
+                            <a style="font-size:1.28em;" href="/course/{{ course.id }}">{{ course.name}}</a>
+                                <p>{{ course.school }}&nbsp/&nbsp{% for teacher in course.teacherSet.all %}{{ teacher.name }}&nbsp{% endfor %}</p>
+                        </div>
+                        <div style="float: right;">
+                            <div class="ui horizontal basic segments" style="margin-right:14px;margin-top: -6px;min-width:237px;box-shadow: 0 0 0 0 #FFFFFF;">
+                                <div style="width:40px;" class="ui segment">
+                                <i class="frown red icon"></i><strong>{{ course.badReviewCount }}</strong>
+                                </div>
+                                <div style="width:40px;" class="ui segment">
+                                <i class="meh yellow icon"></i><strong>{{ course.neutralReviewCount }}</strong>
+                                </div>
+                                <div style="width:40px;" class="ui segment">
+                                <i class="smile green icon"></i><strong>{{ course.goodReviewCount }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <div class="ui divider"></div>
+                {% endfor %}
+                <div style="display:inline-block;margin-left:14px;">
+                    最多显示前30个搜索结果。
+                </div>
+            </div>
+            <div class="four wide column">
+                <div class="ui vertical text menu">
+                    <a class="item" href="/user/follow"><i class="empty heart icon"></i> 我关注的课程</a>
+                    <a class="item" href="/user/collection"><i class="bookmark outline icon"></i> 我收藏的评论</a>
+                </div>
+                <div class="ui divider"></div>
+                <div class="ui horizontal link list" style="margin: 0px 14px;">
+                    <a class="item" href="/about">关于网站</a>
+                    <a class="item" href="/contactus">联系我</a>
+                </div>
+            </div>
+        </div>
+        <div class="ui small modal" id="scoreModal">
+            <i class="close icon"></i>
+            <div class="header">
+                添加评论
+            </div>
+            <div class="image content">
+                <div class="description">
+                    <form>
+                        <div class="ui form">
+                            <div class="ui header">附加说明</div>
+                            <textarea></textarea>
+                        </div>
+                        <div class="ui form" style="float:right;padding-top:20px;margin-bottom:-10px;">
+                            <div class="inline fields">
+                                <label>打个分吧</label>
+                                <div class="field">
+                                    <div class="ui radio checkbox">
+                                        <input type="radio" name="frequency">
+                                        <label>差评<i class="frown red icon"></i></label>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui radio checkbox">
+                                        <input type="radio" name="frequency">
+                                        <label>中评<i class="meh yellow icon"></i></label>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui radio checkbox">
+                                        <input type="radio" name="frequency">
+                                        <label>好评<i class="smile green icon"></i></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="actions">
+                <div class="ui black deny button">
+                    取消
+                </div>
+                <div class="ui positive right labeled icon button">
+                    提交评论
+                    <i class="checkmark icon"></i>
+                </div>
+            </div>
+        </div>
+            <div class="ui small modal" id="reviewModal">
+                <i class="close icon"></i>
+                <div class="header">
+                    添加评论
+                </div>
+                <div class="image content">
+                    <div class="description">
+                        <form>
+                            <div class="ui form">
+                                <div class="ui header">附加说明</div>
+                                <textarea></textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            <div class="actions">
+                <div class="ui black deny button">
+                    取消
+                </div>
+                <div class="ui positive right labeled icon button">
+                    提交评论
+                    <i class="checkmark icon"></i>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                    $('.dropdown')
+                    .dropdown();
+                    $('#addReview').on('click', function(){
+                        $('.ui.modal#reviewModal')
+                        .modal('show');
+                    });
+                    $('#addScore').on('click', function(){
+                        $('.ui.modal#scoreModal')
+                        .modal('show');
+                    });
+                    $('#chooseschool').on('click', function(){
+                        $('#universityHiddenValue').val($('#chooseschool').dropdown('get text'))
+                    });
+                }
+            );
+        </script>
+        <script>
+            $(document).ready(function() {
+                $('#chooseschool')
+                  .popup(
+                  {
+                      on :'manual',
+                      position : 'bottom center',
+                     content    : '请选择学校',
+                  })
+                ;
+                $('#chooseschool').popup('hide');
+                $('#chooseschool').on('click', function(){$(this).popup('hide');});
+                $('#searchSchoolButton').on('click', function(){
+                    if($('#universityHiddenValue').val() == '选择学校') {
+                        $('#chooseschool').popup('show');
+                    }
+                    else {
+                        $('#searchSchool').submit();
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

@@ -1,5 +1,6 @@
 # TrustClassProject
 A project for course review.
+##安装请看setupGuide.md  
 ##App course
 显示课程信息
 ##App databaseOperation

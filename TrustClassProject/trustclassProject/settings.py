@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'course',
     'user',
     'captcha',
+    'init',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -87,8 +88,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'django_trustclassProject',
-        'USER': 'root',
-        'PASSWORD': 'nnlnjgwdo1A',
+        'USER': 'tc',
+        'PASSWORD': '12345678',
     }
 }
 

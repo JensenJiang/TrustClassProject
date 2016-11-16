@@ -4,10 +4,10 @@
 sudo apt-get install mysql-server
 ##设置mysql
 1. 创建mysql-server的root用户(应该在安装时候就建立好了)
-2. 用root用户登录mysql-server: mysql -u root -p password
+2. 用root用户登录mysql-server: mysql -u root -p
 3. 建立数据库: create database django_trustclassProject default charset=utf8;
-4. 建立新用户: create user 'tc'@'localhost' indentified by '12345678';
-5. 为tc授权: grant all on django_trustclassProject.\* to tc;
+4. 建立新用户: create user 'tc'@'localhost' identified by '12345678';
+5. 为tc授权: grant privileges all on django_trustclassProject.\* to 'tc'@'localhost';
 
 ##安装Django Simple Captcha
 - https://github.com/mbi/django-simple-captcha

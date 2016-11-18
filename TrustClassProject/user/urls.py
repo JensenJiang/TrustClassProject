@@ -12,5 +12,5 @@ urlpatterns = [
 	url(r'collection/p(?P<page>[0-9]+)', views.collectionPage),
 	url(r'collection/', views.redirectToCollectionPage),
 	url(r'^profile/$', views.profilePage),
-        url(r'^api/profile/(?P<pk>[0-9]*)$', views.TCUserProfile.as_view()),
+        url(r'^api/profile/(?P<pk>[0-9]*)$', views.api_TCUserProfile.as_view()),
 ]

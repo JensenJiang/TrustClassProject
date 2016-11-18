@@ -4,16 +4,17 @@ from databaseOperation import models, forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 import json
-from databaseOperation.serializers import TCUserProfileSerializer
+from databaseOperation.serializers import TCUserProfileSerializer, TCUserProfileUpdateSerializer
 from databaseOperation.models import TCUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import permissions
+from rest_framework import permissions, status
 from django.views.generic import View
 
 
-class TCUserProfile(APIView): 
+class api_TCUserProfile(APIView): 
     permission_classes = (permissions.IsAuthenticated,)
+
     def get(self, request, pk='', format=None):
         if pk == '':
             serializer = TCUserProfileSerializer(request.user.tcuser) 
@@ -25,6 +26,25 @@ class TCUserProfile(APIView):
                 raise Http404
             except Exception:
                 return HttpResponse("Unknown Error!")
+
+    def post(self, request, pk='', format=None):
+        # users can only modify their own profile
+        if pk == '':
+            serializer = TCUserProfileUpdateSerializer(request.user.tcuser, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(TCUserProfileSerializer(request.user.tcuser).data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            raise Http404
+
+
+class api_signUp(APIView):
+    
+    def post(self, request, format=None):
+        pass        
  
 # Create your views here.
 def loginPage(request) :
